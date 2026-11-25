@@ -14,6 +14,7 @@ const std::string& Persoana::getAbilitate() const { return abilitate; }
 
 bool Persoana::poateOcupa(const RolCerut& rol) const {
     return abilitate == rol.getAbilitate() &&
+           nivel >= rol.getNivelMinim() &&
            orePeSaptamana >= rol.getOreNecesare();
 }
 
