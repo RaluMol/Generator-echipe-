@@ -16,9 +16,7 @@ public:
              int nivel, std::string incompatibilCu = "");
 
     const std::string& getNume() const;
-    int getOrePeSaptamana() const;
     const std::string& getAbilitate() const;
-    int getNivel() const;
 
     bool poateOcupa(const RolCerut& rol) const;
     bool esteCompatibilCu(const Persoana& alta) const;

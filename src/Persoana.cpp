@@ -10,13 +10,10 @@ Persoana::Persoana(std::string nume, int orePeSaptamana, std::string abilitate,
       incompatibilCu(std::move(incompatibilCu)) {}
 
 const std::string& Persoana::getNume() const { return nume; }
-int Persoana::getOrePeSaptamana() const { return orePeSaptamana; }
 const std::string& Persoana::getAbilitate() const { return abilitate; }
-int Persoana::getNivel() const { return nivel; }
 
 bool Persoana::poateOcupa(const RolCerut& rol) const {
     return abilitate == rol.getAbilitate() &&
-           nivel >= rol.getNivelMinim() &&
            orePeSaptamana >= rol.getOreNecesare();
 }
 

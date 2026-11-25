@@ -27,7 +27,6 @@ void Proiect::setBuget(int bugetNou) { buget = bugetNou; }
 
 const std::string& Proiect::getNume() const { return nume; }
 int Proiect::getBuget() const { return buget; }
-int Proiect::getDurataSaptamani() const { return durataSaptamani; }
 const std::vector<RolCerut>& Proiect::getRoluri() const { return roluri; }
 
 int Proiect::calculeazaOreTotale() const {

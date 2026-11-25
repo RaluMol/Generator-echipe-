@@ -24,7 +24,6 @@ public:
 
     const std::string& getNume() const;
     int getBuget() const;
-    int getDurataSaptamani() const;
     const std::vector<RolCerut>& getRoluri() const;
     int calculeazaOreTotale() const;
 
