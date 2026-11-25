@@ -11,9 +11,6 @@ set(TESTS_EXECUTABLE_NAME "${MAIN_PROJECT_NAME}_test")
 option(CMAKE_EXPORT_COMPILE_COMMANDS "Export compilation database" ON)
 
 project(${MAIN_PROJECT_NAME})
-# set(CMAKE_PROJECT_VERSION_MAJOR 0)
-# set(CMAKE_PROJECT_VERSION_MINOR 0)
-# set(CMAKE_PROJECT_VERSION_PATCH 1)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -31,57 +28,61 @@ include(cmake/RegisterTests.cmake)
 
 # External dependencies with FetchContent
 
-# include(FetchContent)
-#
-# set(FETCHCONTENT_QUIET OFF CACHE INTERNAL "Override verbose output" FORCE)
-# set(FETCHCONTENT_UPDATES_DISCONNECTED ON CACHE INTERNAL "Override update strategy" FORCE)
-#
-# NOTE: Also update env vars used for caching in
-#     - .github/actions/configure-cmake/action.yml
-#     - .github/workflows/cmake.yml
-# FetchContent_Declare(
-#     SomeLib
-#     SYSTEM         # keeps ext libs out of static code analysis
-#     GIT_REPOSITORY https://github.com/<SomeUser>/<SomeLib>.git
-#     GIT_TAG        <some_git_hash> # <which tag/branch @ <some_date>>
-#     GIT_SHALLOW    1  # works only with branches or tags, not with arbitrary commit hashes
-#     GIT_PROGRESS   ON
-# )
-#
-# FetchContent_MakeAvailable(SomeLib)
+include(FetchContent)
 
-###############################################################################
+set(FETCHCONTENT_QUIET OFF CACHE INTERNAL "Override verbose output" FORCE)
+set(FETCHCONTENT_UPDATES_DISCONNECTED ON CACHE INTERNAL "Override update strategy" FORCE)
 
-# External dependencies with find_package
+FetchContent_Declare(
+    nlohmann_json
+    SYSTEM
+    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    OVERRIDE_FIND_PACKAGE
+)
 
-# find_package(Threads REQUIRED)
+FetchContent_MakeAvailable(nlohmann_json)
+
+set(INJA_USE_EMBEDDED_JSON OFF CACHE BOOL "" FORCE)
+set(INJA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(BUILD_BENCHMARK OFF CACHE BOOL "" FORCE)
+set(INJA_INSTALL OFF CACHE BOOL "" FORCE)
+set(INJA_EXPORT OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+    inja
+    SYSTEM
+    URL https://github.com/pantor/inja/archive/refs/tags/v3.4.0.tar.gz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+
+FetchContent_MakeAvailable(inja)
 
 ###############################################################################
 
 # Configure sources
 
-# always STATIC (simpler); TBD if we ever want dynamic for this; BUILD_SHARED_LIBS is for ext deps
 add_library(${MAIN_LIBRARY_NAME} STATIC)
 
-# NOTE: update EXECUTABLE_NAME in .github/workflows/cmake.yml when changing name here
 add_executable(${MAIN_EXECUTABLE_NAME}
     app/main.cpp
 )
+
 target_sources(${MAIN_LIBRARY_NAME}
     PRIVATE
-        src/Example.cpp
-        src/internal/Detail.cpp
+        src/Persoana.cpp
+        src/RolCerut.cpp
+        src/Proiect.cpp
+        src/MotorMatching.cpp
+      
 )
 
-# NOTE: Add all defined targets (e.g. executables, libraries, etc. )
-# NOTE: RUN_SANITIZERS is optional, if it's not present it will default to true
 set_compiler_flags(RUN_SANITIZERS ${USE_ASAN} TARGET_NAMES ${MAIN_EXECUTABLE_NAME} ${MAIN_LIBRARY_NAME})
 
 ###############################################################################
 
 # Configure includes
 
-# app/ needs no include dir of its own: it inherits include/ by linking the library
 target_include_directories(${MAIN_LIBRARY_NAME} PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
@@ -89,9 +90,6 @@ target_include_directories(${MAIN_LIBRARY_NAME} PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
 
-# use SYSTEM so cppcheck and clang-tidy do not report warnings from these directories
-# vendored external deps should be private by default
-# a public dep is an interface commitment, shared by app/ and tests/
 target_include_directories(${MAIN_LIBRARY_NAME} SYSTEM PUBLIC
     ${EXT_PUBLIC_DIR}
 )
@@ -99,21 +97,15 @@ target_include_directories(${MAIN_LIBRARY_NAME} SYSTEM PRIVATE
     ${EXT_PRIVATE_DIR}
 )
 
-# target_include_directories(${MAIN_EXECUTABLE_NAME} SYSTEM PRIVATE ${<SomeLib>_SOURCE_DIR}/include)
-
 ###############################################################################
 
 # Link libraries
 
+target_link_libraries(${MAIN_LIBRARY_NAME} PRIVATE nlohmann_json::nlohmann_json pantor::inja)
 target_link_libraries(${MAIN_EXECUTABLE_NAME} PRIVATE ${MAIN_LIBRARY_NAME})
-
-# target_link_directories(${MAIN_EXECUTABLE_NAME} PRIVATE ${<SomeLib>_BINARY_DIR}/lib)
-# target_link_libraries(${MAIN_EXECUTABLE_NAME} <SomeLib>)
 
 ###############################################################################
 
-# copy binaries to "bin" folder; these are uploaded as artifacts on each release
-# DESTINATION_DIR is set as "bin" in cmake/Options.cmake
 install(TARGETS ${MAIN_EXECUTABLE_NAME} DESTINATION ${DESTINATION_DIR})
 install(TARGETS ${MAIN_LIBRARY_NAME} ARCHIVE DESTINATION lib)
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
@@ -127,12 +119,8 @@ if(APPLE)
 endif()
 
 copy_files(FILES tastatura.txt DIRECTORY assets COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
-# copy_files(FILES tastatura.txt config.json DIRECTORY images sounds COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
-# copy_files(DIRECTORY images sounds COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
 
 ###############################################################################
-
-# Tests; BUILD_TESTING is declared in cmake/Options.cmake, include(CTest) enables it. No framework on main
 
 if(BUILD_TESTING)
     add_subdirectory(tests)
