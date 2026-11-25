@@ -2,26 +2,51 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <fstream>
+#include <sstream>
 
 #include "MotorMatching.hpp"
 #include "Persoana.hpp"
 #include "Proiect.hpp"
 #include "RolCerut.hpp"
 
-int main() {
-    std::vector<Persoana> candidati = {
-        Persoana("Ana Popescu", 15, "C++", 9, "Mihai Ionescu"),
-        Persoana("Mihai Ionescu", 12, "C++", 8, "Ana Popescu"),
-        Persoana("Elena Radu", 10, "Design", 8),
-        Persoana("Andrei Stan", 14, "Management", 9),
-        Persoana("Vlad Marin", 12, "Design", 7)
-    };
+std::vector<Persoana> incarcaCandidati(const std::string& cale) {
+    std::vector<Persoana> lista;
+    std::ifstream fin(cale);
+    if (!fin) {
+        fin.open("../" + cale);  // fallback daca se ruleaza din folderul build/
+    }
+    if (!fin) {
+        std::cerr << "Nu s-a putut deschide fisierul: " << cale << '\n';
+        return lista;
+    }
 
-    MotorMatching motor(candidati);
+    std::string linie;
+    while (std::getline(fin, linie)) {
+        if (linie.empty()) continue;
+
+        std::stringstream ss(linie);
+        std::string nume, oreStr, abilitate, nivelStr, incompatibil;
+
+        std::getline(ss, nume, ';');
+        std::getline(ss, oreStr, ';');
+        std::getline(ss, abilitate, ';');
+        std::getline(ss, nivelStr, ';');
+        std::getline(ss, incompatibil, ';');
+
+        lista.emplace_back(nume, std::stoi(oreStr), abilitate,
+                           std::stoi(nivelStr), incompatibil);
+    }
+    return lista;
+}
+int main() {
+ 
+
+MotorMatching motor(incarcaCandidati("assets/candidati.txt"));
     std::optional<Proiect> proiectCurent;
 
     while (true) {
-        std::cout << "\n=== ALCHIMIE DE ECHIPE ===\n"
+        std::cout << "\n=== ECHIPE proiecte ===\n"
                   << "1. Afiseaza candidatii\n"
                   << "2. Creeaza proiect nou\n"
                   << "3. Testeaza scenariu alternativ (Regula celor 3)\n"

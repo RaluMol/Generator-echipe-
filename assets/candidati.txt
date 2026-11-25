@@ -1,0 +1,5 @@
+Ana Popescu;15;C++;9;Mihai Ionescu
+Mihai Ionescu;20;C++;8;Ana Popescu
+Elena Radu;10;Design;8;
+Andrei Marin;12;Backend;7;
+Ioana Stoica;18;Frontend;9;
